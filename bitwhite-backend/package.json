@@ -1,5 +1,6 @@
 {
   "name": "bitwhite-backend",
+  "type": "module",
   "version": "1.0.0",
   "description": "Backend para el sistema BitWhite - Licitaciones Públicas con Blockchain",
   "main": "src/server.js",
