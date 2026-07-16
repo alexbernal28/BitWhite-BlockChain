@@ -1,26 +1,64 @@
 @import "tailwindcss";
-
 :root {
   --background: #ffffff;
   --foreground: #171717;
+
+  /* Azul institucional (Identificador Oficial, cabecera activa, enlaces) */
+  --gov-blue-950: #0b1f42; /* pie de página */
+  --gov-blue-900: #14294f; /* identificador oficial / franja superior */
+  --gov-blue-800: #1e3a6e; /* hover / acentos */
+  --gov-blue-700: #2a4a86; /* enlaces sobre blanco (AA) */
+  --gov-blue-100: #e3ebf7; /* fondos suaves, chips */
+
+  /* Grises institucionales para texto y bordes */
+  --gov-ink: #12172b;
+  --gov-ink-muted: #4b5568;
+  --gov-border: #d8deea;
+  --gov-surface: #f6f8fc;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-gov-blue-950: var(--gov-blue-950);
+  --color-gov-blue-900: var(--gov-blue-900);
+  --color-gov-blue-800: var(--gov-blue-800);
+  --color-gov-blue-700: var(--gov-blue-700);
+  --color-gov-blue-100: var(--gov-blue-100);
+  --color-gov-ink: var(--gov-ink);
+  --color-gov-ink-muted: var(--gov-ink-muted);
+  --color-gov-border: var(--gov-border);
+  --color-gov-surface: var(--gov-surface);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+}
+
+/* Foco visible obligatorio para navegación por teclado (WCAG 2.2 / NORTIC A2 Cap. 7) */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+  outline: 3px solid var(--gov-blue-700);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Respeta la preferencia de movimiento reducido del usuario */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
