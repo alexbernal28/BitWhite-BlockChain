@@ -11,6 +11,7 @@ export default function ClientProvider({
   const [isClient, setIsClient] = useState(false)
 
   useEffect(() => {
+
     setIsClient(true)
   }, [])
 
