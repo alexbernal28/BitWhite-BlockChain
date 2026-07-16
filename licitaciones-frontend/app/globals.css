@@ -1,14 +1,20 @@
 @import "tailwindcss";
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
 
   /* Azul institucional (Identificador Oficial, cabecera activa, enlaces) */
-  --gov-blue-950: #0b1f42; /* pie de página */
-  --gov-blue-900: #14294f; /* identificador oficial / franja superior */
-  --gov-blue-800: #1e3a6e; /* hover / acentos */
-  --gov-blue-700: #2a4a86; /* enlaces sobre blanco (AA) */
-  --gov-blue-100: #e3ebf7; /* fondos suaves, chips */
+  --gov-blue-950: #0b1f42;
+  /* pie de página */
+  --gov-blue-900: #14294f;
+  /* identificador oficial / franja superior */
+  --gov-blue-800: #1e3a6e;
+  /* hover / acentos */
+  --gov-blue-700: #2a4a86;
+  /* enlaces sobre blanco (AA) */
+  --gov-blue-100: #e3ebf7;
+  /* fondos suaves, chips */
 
   /* Grises institucionales para texto y bordes */
   --gov-ink: #12172b;
@@ -33,9 +39,17 @@
   --font-mono: var(--font-geist-mono);
 }
 
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
 }
 
@@ -53,6 +67,7 @@ textarea:focus-visible,
 
 /* Respeta la preferencia de movimiento reducido del usuario */
 @media (prefers-reduced-motion: reduce) {
+
   *,
   *::before,
   *::after {
