@@ -2,7 +2,7 @@ import { DataTypes } from 'sequelize';
 import sequelize from '../../persistence/database.js';
 
 const CitizenInfo = sequelize.define('CitizenInfo', {
-  id:     { type: DataTypes.INTEGER(), primaryKey: true },
+  id:     { type: DataTypes.INTEGER(), primaryKey: true, autoIncrement: true },
   cedula: {type: DataTypes.STRING(12), allowNull: false },
   userId: {
     type: DataTypes.INTEGER,
