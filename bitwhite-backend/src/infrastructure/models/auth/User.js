@@ -2,7 +2,7 @@ import { DataTypes } from 'sequelize';
 import sequelize from '../../persistence/database.js';
 
 const User = sequelize.define('User', {
-  id:     { type: DataTypes.INTEGER(), primaryKey: true },
+  id:     { type: DataTypes.INTEGER(), primaryKey: true, autoIncrement: true },
   name:   { type: DataTypes.STRING(40), allowNull: false },
   email:  { type: DataTypes.STRING(90), allowNull: false,  
             unique: {
