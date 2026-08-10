@@ -1,7 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { login, ApiError } from "../lib/api";
+import { saveSession, portalPathForRole } from "../lib/session";
 
 const PROFILES = [
   { id: "ciudadano", label: "Ciudadano" },
@@ -30,7 +33,27 @@ const SIGNUP_CONFIG: Record<
 };
 
 export default function LoginPage() {
+  const router = useRouter();
   const [profile, setProfile] = useState<(typeof PROFILES)[number]["id"]>("ciudadano");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
+    try {
+      const { token, user } = await login(email, password);
+      saveSession({ token, user });
+      router.push(portalPathForRole(user.role));
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "No se pudo iniciar sesión.");
+    } finally {
+      setLoading(false);
+    }
+  }
 
   return (
     <div className="flex flex-1 items-center justify-center bg-gov-surface px-4 py-12">
@@ -64,11 +87,13 @@ export default function LoginPage() {
           </div>
         </fieldset>
 
-        <form
-          className="mt-6 space-y-4"
-          onSubmit={(e) => e.preventDefault()}
-          aria-describedby="login-status-note"
-        >
+        <form className="mt-6 space-y-4" onSubmit={handleSubmit} aria-describedby="login-status-note">
+          {error && (
+            <p role="alert" className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-700">
+              {error}
+            </p>
+          )}
+
           <div>
             <label htmlFor="email" className="mb-1 block text-sm font-medium text-gov-ink">
               Correo electrónico <span aria-hidden="true">*</span>
@@ -82,6 +107,8 @@ export default function LoginPage() {
               autoComplete="email"
               maxLength={254}
               placeholder="nombre@correo.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               className="w-full rounded-md border border-gov-border px-3 py-2.5 text-sm text-gov-ink placeholder:text-gov-ink-muted focus:border-gov-blue-700"
             />
           </div>
@@ -103,15 +130,18 @@ export default function LoginPage() {
               required
               autoComplete="current-password"
               maxLength={128}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               className="w-full rounded-md border border-gov-border px-3 py-2.5 text-sm text-gov-ink focus:border-gov-blue-700"
             />
           </div>
 
           <button
             type="submit"
-            className="w-full rounded-md bg-gov-blue-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-gov-blue-800"
+            disabled={loading}
+            className="w-full rounded-md bg-gov-blue-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-gov-blue-800 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            Entrar como {PROFILES.find((p) => p.id === profile)?.label.toLowerCase()}
+            {loading ? "Entrando…" : `Entrar como ${PROFILES.find((p) => p.id === profile)?.label.toLowerCase()}`}
           </button>
         </form>
 

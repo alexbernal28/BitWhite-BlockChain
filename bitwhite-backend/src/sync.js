@@ -1,12 +1,8 @@
 import sequelize from './infrastructure/persistence/database.js';
 import createSchemas from './infrastructure/persistence/schemas.js';
 
-// Importa todos los modelos para que Sequelize los registre
-import './infrastructure/models/auth/User.js';
-import './infrastructure/models/auth/Role.js';
-import './infrastructure/models/auth/CompanyInfo.js';
-import './infrastructure/models/auth/CitizenInfo.js';
-// Agrega aquí los demás modelos cuando los vayas definiendo
+// Importa todos los modelos (y sus asociaciones) para que Sequelize los registre.
+import './infrastructure/models/associations.js';
 
 async function syncDatabase() {
   try {

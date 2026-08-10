@@ -17,10 +17,4 @@ const User = sequelize.define('User', {
   tableName: 'users',
   timestamps: true
 });
-
-
-<<<<<<< Updated upstream
-export default User; 
-=======
 export default User;
->>>>>>> Stashed changes

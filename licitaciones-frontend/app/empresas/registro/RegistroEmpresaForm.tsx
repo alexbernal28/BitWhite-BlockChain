@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { registerEmpresa, ApiError } from "../../lib/api";
+import { saveSession } from "../../lib/session";
 
 const SECTORES = [
   "Construcción e infraestructura",
@@ -31,6 +33,8 @@ export default function RegistroEmpresaForm() {
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const passwordsMismatch = confirm.length > 0 && password !== confirm;
 
@@ -47,8 +51,7 @@ export default function RegistroEmpresaForm() {
         {submitted ? (
           <div className="mt-8 rounded-lg border border-emerald-200 bg-emerald-50 p-6 text-center">
             <p className="text-sm font-semibold text-emerald-800">
-              Formulario completo. En esta fase del proyecto los datos no se
-              envían aún al backend (Fase 4 del roadmap).
+              Cuenta de empresa creada e iniciada sesión correctamente.
             </p>
             <Link
               href="/empresas"
@@ -60,13 +63,46 @@ export default function RegistroEmpresaForm() {
         ) : (
           <form
             className="mt-8 space-y-8"
-            onSubmit={(e) => {
+            onSubmit={async (e) => {
               e.preventDefault();
               if (passwordsMismatch) return;
-              setSubmitted(true);
+
+              const data = new FormData(e.currentTarget);
+              const razonSocial = String(data.get("razonSocial") || "");
+              const nombreComercial = String(data.get("nombreComercial") || "");
+
+              setError(null);
+              setLoading(true);
+              try {
+                const { token, user } = await registerEmpresa({
+                  name: String(data.get("contactoNombre") || ""),
+                  email: String(data.get("contactoEmail") || ""),
+                  password,
+                  companyName: nombreComercial || razonSocial,
+                  rnc: String(data.get("rnc") || ""),
+                  razonSocial,
+                  address: String(data.get("direccion") || "") || undefined,
+                  sectorEconomico: String(data.get("sector") || ""),
+                  phone: String(data.get("contactoTelefono") || ""),
+                  cargoEmpresa: String(data.get("contactoCargo") || ""),
+                  provincia: String(data.get("provincia") || ""),
+                });
+                saveSession({ token, user });
+                setSubmitted(true);
+              } catch (err) {
+                setError(err instanceof ApiError ? err.message : "No se pudo completar el registro.");
+              } finally {
+                setLoading(false);
+              }
             }}
             noValidate={false}
           >
+            {error && (
+              <p role="alert" className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-700">
+                {error}
+              </p>
+            )}
+
             {/* Datos de la empresa */}
             <fieldset className="space-y-4">
               <legend className="mb-1 text-sm font-bold text-gov-ink">
@@ -251,9 +287,10 @@ export default function RegistroEmpresaForm() {
 
             <button
               type="submit"
-              className="w-full rounded-md bg-gov-blue-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-gov-blue-800"
+              disabled={loading}
+              className="w-full rounded-md bg-gov-blue-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-gov-blue-800 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              Crear cuenta de empresa
+              {loading ? "Creando cuenta…" : "Crear cuenta de empresa"}
             </button>
 
             <p className="text-center text-sm text-gov-ink-muted">

@@ -3,12 +3,20 @@
   "version": "1.0.0",
   "description": "Backend para el sistema BitWhite - Licitaciones Públicas con Blockchain",
   "main": "src/server.js",
+  "type": "module",
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
+    "sync": "node src/sync.js",
+    "seed": "node src/seed.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": ["nodejs", "express", "blockchain", "ddd"],
+  "keywords": [
+    "nodejs",
+    "express",
+    "blockchain",
+    "ddd"
+  ],
   "author": "Grupo #19 - ITLA",
   "license": "MIT",
   "dependencies": {
@@ -19,6 +27,7 @@
     "helmet": "^7.1.0",
     "jsonwebtoken": "^9.0.2",
     "morgan": "^1.10.0",
+    "multer": "^2.2.0",
     "pg": "^8.11.5",
     "pg-hstore": "^2.3.4",
     "sequelize": "^6.37.3"

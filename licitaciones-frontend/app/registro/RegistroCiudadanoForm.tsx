@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { registerCiudadano, ApiError } from "../lib/api";
+import { saveSession } from "../lib/session";
 
 const inputClass =
   "w-full rounded-md border border-gov-border px-3 py-2.5 text-sm text-gov-ink placeholder:text-gov-ink-muted focus:border-gov-blue-700";
@@ -10,6 +12,8 @@ export default function RegistroCiudadanoForm() {
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const passwordsMismatch = confirm.length > 0 && password !== confirm;
 
@@ -25,8 +29,7 @@ export default function RegistroCiudadanoForm() {
         {submitted ? (
           <div className="mt-8 rounded-lg border border-emerald-200 bg-emerald-50 p-6 text-center">
             <p className="text-sm font-semibold text-emerald-800">
-              Formulario completo. En esta fase del proyecto los datos no se
-              envían aún al backend (Fase 4 del roadmap).
+              Cuenta creada e iniciada sesión correctamente.
             </p>
             <Link href="/ciudadano" className="mt-4 inline-block text-sm font-semibold text-gov-blue-700 hover:underline">
               Ir al Portal Ciudadano
@@ -35,12 +38,36 @@ export default function RegistroCiudadanoForm() {
         ) : (
           <form
             className="mt-8 space-y-4"
-            onSubmit={(e) => {
+            onSubmit={async (e) => {
               e.preventDefault();
               if (passwordsMismatch) return;
-              setSubmitted(true);
+
+              const data = new FormData(e.currentTarget);
+              setError(null);
+              setLoading(true);
+              try {
+                const { token, user } = await registerCiudadano({
+                  name: String(data.get("nombre") || ""),
+                  cedula: String(data.get("cedula") || ""),
+                  email: String(data.get("email") || ""),
+                  phone: String(data.get("telefono") || "") || undefined,
+                  password,
+                });
+                saveSession({ token, user });
+                setSubmitted(true);
+              } catch (err) {
+                setError(err instanceof ApiError ? err.message : "No se pudo completar el registro.");
+              } finally {
+                setLoading(false);
+              }
             }}
           >
+            {error && (
+              <p role="alert" className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-700">
+                {error}
+              </p>
+            )}
+
             <div>
               <label htmlFor="nombre" className="mb-1 block text-sm font-medium text-gov-ink">
                 Nombre completo <span aria-hidden="true">*</span>
@@ -160,9 +187,10 @@ export default function RegistroCiudadanoForm() {
 
             <button
               type="submit"
-              className="w-full rounded-md bg-gov-blue-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-gov-blue-800"
+              disabled={loading}
+              className="w-full rounded-md bg-gov-blue-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-gov-blue-800 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              Crear cuenta
+              {loading ? "Creando cuenta…" : "Crear cuenta"}
             </button>
 
             <p className="text-center text-sm text-gov-ink-muted">

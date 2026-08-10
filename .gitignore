@@ -75,6 +75,12 @@ next-env.d.ts
 # Hardhat coverage reports
 /coverage
 
+# Backend uploaded documents (pliegos, propuestas) — datos locales de demo
+bitwhite-backend/uploads/
+
+# Documentos internos del proyecto (no publicar en GitHub)
+/docs/
+
 # Gas snapshot files
 /.gas-snapshot
 

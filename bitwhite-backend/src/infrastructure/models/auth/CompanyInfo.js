@@ -47,9 +47,4 @@ const CompanyInfo = sequelize.define('CompanyInfo', {
   tableName: 'company_infos',
   timestamps: true,
 });
-
-<<<<<<< Updated upstream
 export default CompanyInfo;
-=======
-export default CompanyInfo;
->>>>>>> Stashed changes

@@ -11,9 +11,4 @@ const Role = sequelize.define('Role', {
   tableName: 'roles',
   timestamps: true
 });
-
-<<<<<<< Updated upstream
 export default Role;
-=======
-export default Role;
->>>>>>> Stashed changes

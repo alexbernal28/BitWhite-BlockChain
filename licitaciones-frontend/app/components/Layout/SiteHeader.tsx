@@ -1,15 +1,31 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { BitWhiteMark } from "./Logos";
 import { INTEREST_MENU, LOGIN_NAV, MAIN_NAV } from "./nav-config";
+import { clearSession, getSession, type Session } from "../../lib/session";
 
 export default function SiteHeader() {
   const pathname = usePathname();
+  const router = useRouter();
   const [interestOpen, setInterestOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [session, setSession] = useState<Session | null>(null);
+
+  // Se re-lee en cada cambio de ruta (p. ej. justo después de iniciar sesión)
+  // porque localStorage no dispara un re-render por sí solo.
+  useEffect(() => {
+    setSession(getSession());
+  }, [pathname]);
+
+  function handleLogout() {
+    clearSession();
+    setSession(null);
+    setMobileOpen(false);
+    router.push("/");
+  }
 
   const isActive = (href: string) =>
     href === "/" ? pathname === "/" : pathname.startsWith(href);
@@ -101,12 +117,27 @@ export default function SiteHeader() {
             )}
           </div>
 
-          <Link
-            href={LOGIN_NAV.href}
-            className="flex h-10 items-center rounded-md bg-gov-blue-900 px-4 text-sm font-semibold text-white hover:bg-gov-blue-800"
-          >
-            {LOGIN_NAV.label}
-          </Link>
+          {session ? (
+            <div className="flex items-center gap-2">
+              <span className="max-w-[140px] truncate text-sm font-medium text-gov-ink" title={session.user.name}>
+                {session.user.name}
+              </span>
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="flex h-10 items-center rounded-md border border-gov-border px-4 text-sm font-semibold text-gov-ink hover:bg-gov-surface"
+              >
+                Cerrar sesión
+              </button>
+            </div>
+          ) : (
+            <Link
+              href={LOGIN_NAV.href}
+              className="flex h-10 items-center rounded-md bg-gov-blue-900 px-4 text-sm font-semibold text-white hover:bg-gov-blue-800"
+            >
+              {LOGIN_NAV.label}
+            </Link>
+          )}
         </div>
 
         {/* Botón hamburguesa (versión móvil) */}
@@ -155,7 +186,7 @@ export default function SiteHeader() {
       {mobileOpen && (
         <nav id="mobile-nav" aria-label="Menú principal (móvil)" className="border-t border-gov-border md:hidden">
           <ul className="flex flex-col gap-1 px-4 py-3">
-            {[...MAIN_NAV, LOGIN_NAV].map((item) => {
+            {MAIN_NAV.map((item) => {
               const active = isActive(item.href);
               return (
                 <li key={item.href}>
@@ -172,6 +203,28 @@ export default function SiteHeader() {
                 </li>
               );
             })}
+            <li>
+              {session ? (
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="block w-full rounded-md px-3 py-2 text-left text-sm font-medium text-gov-ink hover:bg-gov-blue-100"
+                >
+                  Cerrar sesión ({session.user.name})
+                </button>
+              ) : (
+                <Link
+                  href={LOGIN_NAV.href}
+                  aria-current={isActive(LOGIN_NAV.href) ? "page" : undefined}
+                  onClick={() => setMobileOpen(false)}
+                  className={`block rounded-md px-3 py-2 text-sm font-medium ${
+                    isActive(LOGIN_NAV.href) ? "bg-gov-blue-900 text-white" : "text-gov-ink hover:bg-gov-blue-100"
+                  }`}
+                >
+                  {LOGIN_NAV.label}
+                </Link>
+              )}
+            </li>
           </ul>
         </nav>
       )}
