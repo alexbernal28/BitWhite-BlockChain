@@ -27,7 +27,13 @@ export default function EmpresasDashboard() {
     e.preventDefault();
     if (!session) return;
 
-    const data = new FormData(e.currentTarget);
+    // Se guarda una referencia al formulario ANTES del await: React anula
+    // `e.currentTarget` en cuanto el manejador del evento cede el control
+    // (es decir, en el primer await), así que usarlo después de esperar la
+    // respuesta del servidor lanzaría un error aunque la propuesta ya se
+    // haya guardado correctamente.
+    const form = e.currentTarget;
+    const data = new FormData(form);
     const formData = new FormData();
     formData.set("tenderId", String(data.get("tenderId") || ""));
     const amount = String(data.get("montoOfertado") || "");
@@ -41,7 +47,7 @@ export default function EmpresasDashboard() {
     try {
       await submitProposal(session.token, formData);
       setSubmitResult("Propuesta enviada correctamente. Su hash SHA-256 quedó registrado para verificación pública.");
-      e.currentTarget.reset();
+      form.reset();
     } catch (err) {
       setSubmitError(err instanceof ApiError ? err.message : "No se pudo enviar la propuesta.");
     } finally {
@@ -53,9 +59,19 @@ export default function EmpresasDashboard() {
     <div className="flex flex-1 flex-col">
       <header className="border-b border-gov-border bg-indigo-50">
         <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
-          <span className="mb-2 inline-block w-fit rounded-full bg-indigo-100 px-2.5 py-1 text-xs font-semibold text-indigo-800">
-            Proveedores
-          </span>
+          <div className="flex items-start justify-between gap-4">
+            <span className="mb-2 inline-block w-fit rounded-full bg-indigo-100 px-2.5 py-1 text-xs font-semibold text-indigo-800">
+              Proveedores
+            </span>
+            {session && session.user.role === "empresa" && (
+              <Link
+                href="/empresas/propuestas"
+                className="w-fit shrink-0 rounded-md border border-gov-border bg-white px-4 py-2 text-xs font-semibold text-gov-ink hover:bg-gov-surface"
+              >
+                Mis propuestas
+              </Link>
+            )}
+          </div>
           <h1 className="text-2xl font-bold text-gov-ink sm:text-3xl">Portal de Empresas</h1>
           <p className="mt-2 max-w-2xl text-sm text-gov-ink-muted sm:text-base">
             Regístrate como proveedor del Estado, postúlate a licitaciones abiertas y respalda tus propuestas con
@@ -128,11 +144,19 @@ export default function EmpresasDashboard() {
             ) : (
               <ul className="mt-4 divide-y divide-gov-border">
                 {tenders.map((tender) => (
-                  <li key={tender.id} className="py-3">
-                    <p className="text-sm font-semibold text-gov-ink">{tender.title}</p>
-                    <p className="text-xs text-gov-ink-muted">
-                      {tender.processNumber} · {tender.category} · Límite {tender.deadline}
-                    </p>
+                  <li key={tender.id} className="flex items-center justify-between gap-3 py-3">
+                    <div>
+                      <p className="text-sm font-semibold text-gov-ink">{tender.title}</p>
+                      <p className="text-xs text-gov-ink-muted">
+                        {tender.processNumber} · {tender.category} · Límite {tender.deadline}
+                      </p>
+                    </div>
+                    <Link
+                      href={`/empresas/licitaciones/${tender.id}`}
+                      className="shrink-0 text-xs font-semibold text-gov-blue-700 hover:underline"
+                    >
+                      Ver detalle
+                    </Link>
                   </li>
                 ))}
               </ul>

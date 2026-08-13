@@ -128,6 +128,10 @@ export function listMyTenders(token: string) {
   return request<Tender[]>("/procurement/mine", { headers: authHeaders(token) });
 }
 
+export function getTender(id: number | string) {
+  return request<Tender>(`/procurement/${id}`);
+}
+
 export function createTender(token: string, formData: FormData) {
   return request<Tender>("/procurement", {
     method: "POST",
@@ -137,6 +141,34 @@ export function createTender(token: string, formData: FormData) {
 }
 
 // ---------- Propuestas ----------
+
+export interface ProposalDocumentInfo {
+  id: number;
+  documentName: string;
+  filePath: string;
+  documentHash: string;
+  createdAt: string;
+}
+
+export interface ProposalCompanyInfo {
+  id: number;
+  companyName: string;
+  rnc: string;
+  razon_social: string;
+}
+
+export interface Proposal {
+  id: number;
+  tenderId: number;
+  companyId: number;
+  offeredAmount: string | null;
+  message: string | null;
+  status: "Enviada" | "En revisión" | "Aprobada" | "Rechazada";
+  createdAt: string;
+  tender?: Tender;
+  company?: ProposalCompanyInfo;
+  documents?: ProposalDocumentInfo[];
+}
 
 export interface ProposalResult {
   proposal: { id: number; tenderId: number; companyId: number; status: string };
@@ -149,6 +181,26 @@ export function submitProposal(token: string, formData: FormData) {
     headers: authHeaders(token),
     body: formData,
   });
+}
+
+/** Propuestas enviadas por la empresa autenticada. */
+export function listMyProposals(token: string) {
+  return request<Proposal[]>("/proposals/mine", { headers: authHeaders(token) });
+}
+
+/** Propuestas recibidas por una licitación (solo la institución que la publicó). */
+export function listProposalsForTender(token: string, tenderId: number | string) {
+  return request<Proposal[]>(`/proposals/tender/${tenderId}`, { headers: authHeaders(token) });
+}
+
+/** Detalle completo de una propuesta. */
+export function getProposal(token: string, id: number | string) {
+  return request<Proposal>(`/proposals/${id}`, { headers: authHeaders(token) });
+}
+
+/** URL pública para descargar/visualizar un documento subido (pliego o propuesta). */
+export function documentUrl(filePath: string) {
+  return `${API_BASE_URL.replace(/\/api\/?$/, "")}/uploads/${filePath}`;
 }
 
 // ---------- Auditoría ----------

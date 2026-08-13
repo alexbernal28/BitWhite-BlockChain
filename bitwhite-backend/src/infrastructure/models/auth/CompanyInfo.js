@@ -23,8 +23,9 @@ const CompanyInfo = sequelize.define('CompanyInfo', {
     type: DataTypes.STRING(60),
     allowNull: false,
   },
+  // 23 = 20 + 3, para admitir el formato con guiones (ej. 1-30-12345-6).
   rnc: {
-    type: DataTypes.STRING(20),
+    type: DataTypes.STRING(23),
     allowNull: false,
     unique: {
       name: 'uq_company_infos_rnc',

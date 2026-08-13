@@ -4,6 +4,25 @@ import { sha256Buffer } from '../services/hash.service.js';
 import { HttpError } from '../services/auth.service.js';
 import sequelize from '../infrastructure/persistence/database.js';
 
+const PROPOSAL_DETAIL_INCLUDES = [
+  { model: Tender, as: 'tender' },
+  // Incluye userId: assertCanViewProposal lo necesita para autorizar a la
+  // empresa dueña de la propuesta (no se expone en los listados públicos).
+  { model: CompanyInfo, as: 'company', attributes: ['id', 'userId', 'companyName', 'rnc', 'razon_social'] },
+  { model: ProposalDocument, as: 'documents' },
+];
+
+/**
+ * Verifica que el usuario autenticado tenga derecho a ver el detalle de una
+ * propuesta: la empresa que la envió, o el gobierno dueño de la licitación
+ * a la que pertenece.
+ */
+function assertCanViewProposal(proposal, user) {
+  if (user.role === 'gobierno' && proposal.tender?.createdByUserId === user.id) return;
+  if (user.role === 'empresa' && proposal.company?.userId === user.id) return;
+  throw new HttpError(403, 'No tienes permiso para ver esta propuesta.');
+}
+
 export async function submitProposal(req, res, next) {
   try {
     const { tenderId, offeredAmount, message } = req.body;
@@ -51,6 +70,71 @@ export async function submitProposal(req, res, next) {
     });
 
     res.status(201).json({ status: 'success', data: result });
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
+ * Propuestas enviadas por la empresa autenticada ("Mis propuestas").
+ */
+export async function listMyProposals(req, res, next) {
+  try {
+    const company = await CompanyInfo.findOne({ where: { userId: req.user.id } });
+    if (!company) throw new HttpError(403, 'Tu cuenta no tiene un perfil de empresa asociado.');
+
+    const proposals = await Proposal.findAll({
+      where: { companyId: company.id },
+      include: [
+        { model: Tender, as: 'tender', attributes: ['id', 'title', 'processNumber', 'status', 'deadline'] },
+        { model: ProposalDocument, as: 'documents' },
+      ],
+      order: [['createdAt', 'DESC']],
+    });
+    res.status(200).json({ status: 'success', data: proposals });
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
+ * Propuestas recibidas por una licitación específica. Solo la entidad de
+ * gobierno que la publicó puede consultarlas.
+ */
+export async function listProposalsForTender(req, res, next) {
+  try {
+    const tender = await Tender.findByPk(req.params.tenderId);
+    if (!tender) throw new HttpError(404, 'Licitación no encontrada.');
+    if (tender.createdByUserId !== req.user.id) {
+      throw new HttpError(403, 'No tienes permiso para ver las propuestas de esta licitación.');
+    }
+
+    const proposals = await Proposal.findAll({
+      where: { tenderId: tender.id },
+      include: [
+        { model: CompanyInfo, as: 'company', attributes: ['id', 'companyName', 'rnc', 'razon_social'] },
+        { model: ProposalDocument, as: 'documents' },
+      ],
+      order: [['createdAt', 'DESC']],
+    });
+    res.status(200).json({ status: 'success', data: proposals });
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
+ * Detalle completo de una propuesta. Accesible para la empresa que la
+ * envió y para el gobierno dueño de la licitación asociada.
+ */
+export async function getProposal(req, res, next) {
+  try {
+    const proposal = await Proposal.findByPk(req.params.id, { include: PROPOSAL_DETAIL_INCLUDES });
+    if (!proposal) throw new HttpError(404, 'Propuesta no encontrada.');
+
+    assertCanViewProposal(proposal, req.user);
+
+    res.status(200).json({ status: 'success', data: proposal });
   } catch (err) {
     next(err);
   }

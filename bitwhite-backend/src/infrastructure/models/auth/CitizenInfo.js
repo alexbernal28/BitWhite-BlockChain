@@ -3,7 +3,8 @@ import sequelize from '../../persistence/database.js';
 
 const CitizenInfo = sequelize.define('CitizenInfo', {
   id:     { type: DataTypes.INTEGER(), primaryKey: true, autoIncrement: true },
-  cedula: {type: DataTypes.STRING(12), allowNull: false },
+  // 15 = 12 + 3, para admitir el formato con guiones (ej. 001-1234567-8, 13 caracteres).
+  cedula: {type: DataTypes.STRING(15), allowNull: false },
   userId: {
     type: DataTypes.INTEGER,
     allowNull: false,

@@ -134,9 +134,17 @@ export default function GobiernoDashboard() {
                       {tender.processNumber} · {tender.category} · Límite {tender.deadline}
                     </p>
                   </div>
-                  <span className="w-fit rounded-full bg-gov-blue-100 px-2.5 py-1 text-xs font-semibold text-gov-blue-700">
-                    {tender.status}
-                  </span>
+                  <div className="flex items-center gap-3">
+                    <span className="w-fit rounded-full bg-gov-blue-100 px-2.5 py-1 text-xs font-semibold text-gov-blue-700">
+                      {tender.status}
+                    </span>
+                    <Link
+                      href={`/gobierno/licitaciones/${tender.id}`}
+                      className="text-xs font-semibold text-gov-blue-700 hover:underline"
+                    >
+                      Ver detalle
+                    </Link>
+                  </div>
                 </li>
               ))}
             </ul>
